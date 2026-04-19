@@ -1,0 +1,2 @@
+C:/xampp/htdocs/project/AgentpaymentApp/android/app/.cxx/Debug/2t6g221w/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/xampp/htdocs/project/AgentpaymentApp/android/app/.cxx/Debug/2t6g221w/armeabi-v7a/CMakeFiles/rebuild_cache.dir

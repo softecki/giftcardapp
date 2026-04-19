@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Malipo Agent Payment Application - Agent portal for payment processing">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <!-- Version and Update Management -->
+  <meta name="version" content="1.0.0">
+  <meta name="build-date" content="2024-01-15">
+
+  <!-- PWA meta tags -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Malipo Agent">
+  <meta name="application-name" content="Malipo Agent">
+  <meta name="msapplication-TileColor" content="#0175C2">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="theme-color" content="#0175C2">
+
+  <!-- iOS meta tags & icons -->
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/Icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/Icon-512.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="shortcut icon" href="favicon.png">
+
+  <title>Malipo Agent Payment App</title>
+  <link rel="manifest" href="manifest.json">
+  <!-- sql.js loader for Drift web (fallback if IndexedDB is unavailable) -->
+  <script>
+    (function() {
+      function setLocateFile(base) {
+        if (!window.initSqlJs) return;
+        const original = window.initSqlJs;
+        window.initSqlJs = function(config) {
+          config = config || {};
+          config.locateFile = function(file) { return base + file; };
+          return original(config);
+        };
+      }
+      function loadScript(src) {
+        return new Promise(function(resolve, reject) {
+          var s = document.createElement('script');
+          s.src = src;
+          s.onload = resolve;
+          s.onerror = reject;
+          document.head.appendChild(s);
+        });
+      }
+      // Try local first (expects sql-wasm.js and sql-wasm.wasm in /web)
+      loadScript('sql-wasm.js')
+        .then(function(){ setLocateFile('./'); })
+        .catch(function(){
+          // Fallback to CDN
+          var cdn = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/';
+          loadScript(cdn + 'sql-wasm.js').then(function(){ setLocateFile(cdn); });
+        });
+    })();
+  </script>
+
+  <style>
+    /* PWA Install Prompt Styles */
+    .pwa-install-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0175C2;
+      color: white;
+      padding: 16px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .pwa-install-banner.show {
+      display: block;
+    }
+    
+    .pwa-install-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .pwa-install-text {
+      flex: 1;
+      margin-right: 16px;
+    }
+    
+    .pwa-install-buttons {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .pwa-install-btn {
+      background: white;
+      color: #0175C2;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .pwa-install-btn:hover {
+      background: #f0f0f0;
+    }
+    
+    .pwa-install-btn.secondary {
+      background: transparent;
+      color: white;
+      border: 1px solid white;
+    }
+    
+    .pwa-install-btn.secondary:hover {
+      background: rgba(255,255,255,0.1);
+    }
+    /* iOS instruction modal */
+    .pwa-ios-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;z-index:1001}
+    .pwa-ios-modal.show{display:flex;align-items:center;justify-content:center}
+    .pwa-ios-card{background:#fff;color:#333;border-radius:10px;max-width:420px;width:90%;padding:16px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+    .pwa-ios-card h3{margin:0 0 8px 0;color:#0175C2}
+    .pwa-ios-steps{font-size:14px;line-height:1.5;margin:8px 0}
+    .pwa-ios-actions{display:flex;justify-content:flex-end;margin-top:12px}
+    .pwa-close{background:#0175C2;color:#fff;border:none;border-radius:4px;padding:8px 12px;cursor:pointer}
+    
+    /* Update notification styles */
+    .update-notification {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #28a745;
+      color: white;
+      padding: 12px 16px;
+      display: none;
+      z-index: 1002;
+      text-align: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+    
+    .update-notification.show {
+      display: block;
+    }
+    
+    .update-notification .update-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    
+    .update-btn {
+      background: white;
+      color: #28a745;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    
+    .update-btn:hover {
+      background: #f0f0f0;
+    }
+    
+    .update-dismiss {
+      background: transparent;
+      color: white;
+      border: 1px solid white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .update-dismiss:hover {
+      background: rgba(255,255,255,0.1);
+    }
+  </style>
+</head>
+<body>
+  <!-- PWA Install Banner -->
+  <div id="pwa-install-banner" class="pwa-install-banner">
+    <div class="pwa-install-content">
+      <div class="pwa-install-text">
+        <strong>Install Malipo Agent</strong><br>
+        <small>Get quick access to your agent portal</small>
+      </div>
+      <div class="pwa-install-buttons">
+        <button id="pwa-install-btn" class="pwa-install-btn">Install</button>
+        <button id="pwa-dismiss-btn" class="pwa-install-btn secondary">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update notification -->
+  <div id="update-notification" class="update-notification">
+    <div class="update-content">
+      <span>🔄 New version available!</span>
+      <button id="update-btn" class="update-btn">Update Now</button>
+      <button id="update-dismiss" class="update-dismiss">Later</button>
+    </div>
+  </div>
+
+  <!-- iOS instructions modal -->
+  <div id="pwa-ios-modal" class="pwa-ios-modal" role="dialog" aria-modal="true" aria-labelledby="pwa-ios-title">
+    <div class="pwa-ios-card">
+      <h3 id="pwa-ios-title">Install Malipo Agent</h3>
+      <div class="pwa-ios-steps">
+        <p>To install this app on iPhone or iPad:</p>
+        <ol>
+          <li>Tap the <strong>Share</strong> icon in Safari.</li>
+          <li>Scroll and tap <strong>Add to Home Screen</strong>.</li>
+          <li>Tap <strong>Add</strong> to confirm.</li>
+        </ol>
+      </div>
+      <div class="pwa-ios-actions">
+        <button id="pwa-ios-close" class="pwa-close">Got it</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // PWA Install Prompt Logic (Android + iOS) + Version Management
+    let deferredPrompt;
+    let registration;
+    const installBanner = document.getElementById('pwa-install-banner');
+    const installBtn = document.getElementById('pwa-install-btn');
+    const dismissBtn = document.getElementById('pwa-dismiss-btn');
+    const iosModal = document.getElementById('pwa-ios-modal');
+    const iosClose = document.getElementById('pwa-ios-close');
+    const updateNotification = document.getElementById('update-notification');
+    const updateBtn = document.getElementById('update-btn');
+    const updateDismiss = document.getElementById('update-dismiss');
+
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    const dismissed = localStorage.getItem('pwa-install-dismissed') === 'true';
+    const updateDismissed = localStorage.getItem('pwa-update-dismissed') === 'true';
+    const isIOS = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(window.navigator.userAgent);
+    const isAndroid = /android/i.test(window.navigator.userAgent);
+    const isChrome = /chrome/i.test(window.navigator.userAgent);
+    
+    // Version management
+    const currentVersion = document.querySelector('meta[name="version"]')?.content || '1.0.0';
+    const buildDate = document.querySelector('meta[name="build-date"]')?.content || new Date().toISOString().split('T')[0];
+
+    // Version check and update management
+    function checkForUpdates() {
+      if (updateDismissed) return;
+      
+      // Check if service worker has updates
+      if (registration && registration.waiting) {
+        showUpdateNotification();
+      }
+    }
+    
+    function showUpdateNotification() {
+      if (!updateDismissed) {
+        updateNotification.classList.add('show');
+      }
+    }
+    
+    function hideUpdateNotification() {
+      updateNotification.classList.remove('show');
+    }
+    
+    function updateApp() {
+      if (registration && registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        window.location.reload();
+      }
+    }
+    
+    function maybeShowBanner() {
+      if (isStandalone || dismissed) return;
+      
+      // Enhanced install prompt logic
+      if (isIOS && isSafari) {
+        // iOS Safari - show custom instructions
+        setTimeout(() => installBanner.classList.add('show'), 2000);
+      } else if (isAndroid && isChrome) {
+        // Android Chrome - wait for beforeinstallprompt
+        // This will be handled by the beforeinstallprompt event
+      } else if (isAndroid) {
+        // Other Android browsers - show generic install instructions
+        setTimeout(() => installBanner.classList.add('show'), 3000);
+      }
+    }
+
+    // Install prompt events
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (!isStandalone && !dismissed && !isIOS) {
+        setTimeout(() => installBanner.classList.add('show'), 2000);
+      }
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (isIOS && isSafari) {
+        iosModal.classList.add('show');
+        return;
+      }
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+        deferredPrompt = null;
+      }
+      installBanner.classList.remove('show');
+    });
+
+    dismissBtn.addEventListener('click', () => {
+      installBanner.classList.remove('show');
+      localStorage.setItem('pwa-install-dismissed', 'true');
+    });
+    
+    iosClose.addEventListener('click', () => {
+      iosModal.classList.remove('show');
+    });
+
+    // Update notification events
+    updateBtn.addEventListener('click', () => {
+      updateApp();
+      hideUpdateNotification();
+    });
+    
+    updateDismiss.addEventListener('click', () => {
+      hideUpdateNotification();
+      localStorage.setItem('pwa-update-dismissed', 'true');
+    });
+
+    window.addEventListener('appinstalled', () => {
+      installBanner.classList.remove('show');
+      deferredPrompt = null;
+      localStorage.setItem('pwa-install-dismissed', 'true');
+      console.log('PWA was installed');
+    });
+
+    // Service Worker Registration with Update Management
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('flutter-first-frame', () => {
+        navigator.serviceWorker.register('flutter_service_worker.js?v=' + currentVersion)
+          .then((reg) => {
+            registration = reg;
+            console.log('Service Worker registered successfully');
+            
+            // Check for updates
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New content is available, show update notification
+                  showUpdateNotification();
+                }
+              });
+            });
+            
+            // Check for updates on page load
+            checkForUpdates();
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Initialize
+    maybeShowBanner();
+    
+    // Periodic update check (every 30 minutes)
+    setInterval(checkForUpdates, 30 * 60 * 1000);
+    
+    // Log version info
+    console.log(`Malipo Agent v${currentVersion} (${buildDate})`);
+    console.log(`Platform: ${isIOS ? 'iOS' : isAndroid ? 'Android' : 'Desktop'}`);
+    console.log(`Browser: ${isSafari ? 'Safari' : isChrome ? 'Chrome' : 'Other'}`);
+    console.log(`Standalone: ${isStandalone}`);
+  </script>
+
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
