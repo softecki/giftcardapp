@@ -1,4 +1,4 @@
-// Version Update Script for Malipo Agent PWA
+// Version Update Script for GiftCard PWA
 // Run this script to update the version in index.html and manifest.json
 
 const fs = require('fs');
@@ -39,7 +39,7 @@ function updateVersion(newVersion) {
   
   swContent = swContent.replace(
     /const CACHE_NAME = '[^']*';/,
-    `const CACHE_NAME = 'malipo-agent-v${newVersion}';`
+    `const CACHE_NAME = 'giftcard-v${newVersion}';`
   );
   
   fs.writeFileSync(swPath, swContent);

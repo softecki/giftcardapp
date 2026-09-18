@@ -1,6 +1,5 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:malipo_agent/core/app_color.dart';
-import 'package:malipo_agent/generated/assets.dart';
 import 'package:malipo_agent/src/view/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +12,7 @@ import '../../data/database_helper.dart';
 import '../../data/drift_platform_database_helper.dart';
 import '../../static.dart';
 import '../widget/custom_text_button.dart';
+import '../widget/gift_card_brand.dart';
 import 'encryptdecrpty.dart';
 import 'otp.dart';
 import 'reset_password_screen.dart';
@@ -253,8 +253,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 SizedBox(height: 40),
                 Container(
-                  height: 200,
-                  width: 200,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(12),
@@ -273,19 +272,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      Assets.imagesMalipoMtandao1,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  child: const GiftCardBrand(iconSize: 88, fontSize: 28),
                 ),
                 const SizedBox(height: 16),
-                const Text(
-                  "",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
                 Text(
                   'Sign_in_with_your_Phone_Number'.tr(),
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.normal),

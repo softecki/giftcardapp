@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/app_color.dart';
 import '../../../core/app_data.dart';
-import '../../../generated/assets.dart';
+import '../widget/gift_card_brand.dart';
 import 'encryptdecrpty.dart';
 import 'home_screen.dart';
 
@@ -149,19 +149,14 @@ class _VerifyOtpScreenState extends State<VerifyOtpScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-            Image.asset(
-              Assets.imagesMalipoMtandao1,
-              height: 100,
-              width: 100,
-              fit: BoxFit.cover,
-            ),
+            const GiftCardBrand(iconSize: 64, fontSize: 24),
             const SizedBox(height: 20),
             const Text(
               "Welcome at",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             Text(
-              AppData.School_name,
+              AppData.appName,
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),

@@ -24,7 +24,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
     <application
-        android:label="Agent Malipo Mtandao"
+        android:label="GiftCard"
         android:name="${applicationName}"
         android:usesCleartextTraffic="false"
         android:networkSecurityConfig="@xml/network_security_config"

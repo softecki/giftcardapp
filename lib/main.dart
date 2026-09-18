@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'core/app_color.dart';
 import 'core/app_data.dart';
-import 'generated/assets.dart';
+import 'src/view/widget/gift_card_brand.dart';
 import 'src/data/sqflite_web_init_stub.dart'
     if (dart.library.html) 'src/data/sqflite_web_init_web.dart';
 
@@ -126,13 +126,8 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFffffff),
-      body: Center(
-        child: Image.asset(
-          Assets.imagesMalipoMtandao1,
-          fit: BoxFit.cover,
-          width: 200,
-          height: 200,
-        ),
+      body: const Center(
+        child: GiftCardBrand(iconSize: 96, fontSize: 36, showSubtitle: true),
       ),
     );
   }

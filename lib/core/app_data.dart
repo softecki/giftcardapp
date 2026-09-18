@@ -5,7 +5,8 @@ class AppData {
   const AppData._();
 
   static String url = "https://m-malipo.ubx.co.tz/api";
-  static String School_name = "Malipo Mtandao";
+  static const String appName = "GiftCard";
+  static String School_name = appName;
 
 
 

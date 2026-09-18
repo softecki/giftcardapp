@@ -69,7 +69,7 @@ class _PaymentWithPrinterScreenState extends State<PaymentWithPrinterScreen> {
     try {
       final receiptData = {
         'title': 'Payment Receipt',
-        'merchant': 'Malipo Agent',
+        'merchant': 'GiftCard',
         'transactionId': 'TXN${DateTime.now().millisecondsSinceEpoch}',
         'amount': 100.00,
         'fee': 5.00,
@@ -267,7 +267,7 @@ class _PaymentWithPrinterScreenState extends State<PaymentWithPrinterScreen> {
                         ElevatedButton.icon(
                           onPressed: _isLoading ? null : () async {
                             try {
-                              await PrinterService.printText('Test Print from Malipo Agent');
+                              await PrinterService.printText('Test Print from GiftCard');
                               _showSnackBar('Text printed successfully');
                             } catch (e) {
                               _showSnackBar('Text print failed: $e');
@@ -279,7 +279,7 @@ class _PaymentWithPrinterScreenState extends State<PaymentWithPrinterScreen> {
                         ElevatedButton.icon(
                           onPressed: _isLoading ? null : () async {
                             try {
-                              await PrinterService.printQRCode('https://malipo-agent.com');
+                              await PrinterService.printQRCode('GiftCard');
                               _showSnackBar('QR Code printed successfully');
                             } catch (e) {
                               _showSnackBar('QR Code print failed: $e');

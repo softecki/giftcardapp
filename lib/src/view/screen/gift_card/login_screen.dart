@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
+import 'package:malipo_agent/src/view/widget/gift_card_brand.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import 'otp_verification_screen.dart';
@@ -96,26 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 40),
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(60),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.card_giftcard,
-                    size: 60,
-                    color: AppColor.primaryColor,
-                  ),
-                ),
+                const GiftCardBrand(iconSize: 64, fontSize: 28, showSubtitle: true),
                 const SizedBox(height: 30),
                 Text(
                   'Welcome Back',

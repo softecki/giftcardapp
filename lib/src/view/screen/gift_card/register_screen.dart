@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
+import 'package:malipo_agent/src/view/widget/gift_card_brand.dart';
 import 'otp_verification_screen.dart';
 import 'login_screen.dart' as gift_card_login;
 
@@ -110,6 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const GiftCardBrand(iconSize: 48, fontSize: 22),
                 const SizedBox(height: 20),
                 Text(
                   'Create Account',
