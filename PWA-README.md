@@ -1,4 +1,4 @@
-# Malipo Agent PWA Setup & Update Guide
+# GiftCard PWA Setup & Update Guide
 
 ## 🚀 Progressive Web App Features
 
@@ -122,7 +122,7 @@ const urlsToCache = [
 
 ### Debug Mode
 Enable debug logging by opening browser console and looking for:
-- "Malipo Agent v1.0.0" - Version info
+- "GiftCard v1.0.0" - Version info
 - "Service Worker registered successfully" - SW status
 - "PWA was installed" - Installation confirmation
 

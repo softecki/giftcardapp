@@ -1,5 +1,5 @@
-// Service Worker for Malipo Agent PWA
-const CACHE_NAME = 'malipo-agent-v1.0.1';
+// Service Worker for GiftCard PWA
+const CACHE_NAME = 'giftcard-v1.1.0';
 const urlsToCache = [
   '/',
   '/main.dart.js',
