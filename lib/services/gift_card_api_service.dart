@@ -74,20 +74,20 @@ class GiftCardApiService {
   
   // Authentication APIs
   Future<Map<String, dynamic>> register({
-    required String name,
     required String email,
-    required String phone,
     required String password,
-    required String role,
+    String? name,
+    String? phone,
+    String role = 'customer',
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/register'),
       headers: await _getHeaders(),
       body: jsonEncode({
-        'name': name,
         'email': email,
-        'phone': phone,
         'password': password,
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
         'role': role,
       }),
     );

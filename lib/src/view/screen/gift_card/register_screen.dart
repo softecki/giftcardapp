@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
 import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
 import 'package:malipo_agent/src/view/widget/gift_card_brand.dart';
-import 'otp_verification_screen.dart';
 import 'login_screen.dart' as gift_card_login;
+import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,12 +14,9 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  String _selectedRole = 'customer';
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
@@ -29,9 +25,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
-    _phoneController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
@@ -47,35 +41,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      final response = await _apiService.register(
-        name: _nameController.text.trim(),
+      await _apiService.register(
         email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
         password: _passwordController.text,
-        role: _selectedRole,
       );
 
-      if (mounted) {
-        if (response['data']['otp_required'] == true) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OTPVerificationScreen(
-                email: _emailController.text.trim(),
-                phone: _phoneController.text.trim(),
-              ),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(response['data']['message'] ?? 'Registration successful')),
-          );
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const gift_card_login.LoginScreen()),
-          );
-        }
-      }
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -94,7 +69,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
+      backgroundColor: const Color(0xFFFDF6F6),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -122,129 +97,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 Text(
-                  'Sign up to get started',
+                  'Sign up with email and password',
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 40),
-                
-                // Role Selection
-                Text(
-                  'I want to:',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[800],
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedRole = 'customer'),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: _selectedRole == 'customer'
-                                ? AppColor.primaryColor
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _selectedRole == 'customer'
-                                  ? AppColor.primaryColor
-                                  : Colors.grey[300]!,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person,
-                                color: _selectedRole == 'customer'
-                                    ? Colors.white
-                                    : Colors.grey,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Buy Gift Cards',
-                                style: TextStyle(
-                                  color: _selectedRole == 'customer'
-                                      ? Colors.white
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedRole = 'business_owner'),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: _selectedRole == 'business_owner'
-                                ? AppColor.primaryColor
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: _selectedRole == 'business_owner'
-                                  ? AppColor.primaryColor
-                                  : Colors.grey[300]!,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.business,
-                                color: _selectedRole == 'business_owner'
-                                    ? Colors.white
-                                    : Colors.grey,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Sell Gift Cards',
-                                style: TextStyle(
-                                  color: _selectedRole == 'business_owner'
-                                      ? Colors.white
-                                      : Colors.grey,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-
-                // Name Field
-                _buildTextField(
-                  controller: _nameController,
-                  label: 'Full Name',
-                  icon: Icons.person,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Email Field
+                const SizedBox(height: 32),
                 _buildTextField(
                   controller: _emailController,
                   label: 'Email',
@@ -261,26 +123,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-
-                // Phone Field
-                _buildTextField(
-                  controller: _phoneController,
-                  label: 'Phone Number',
-                  icon: Icons.phone,
-                  keyboardType: TextInputType.phone,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your phone number';
-                    }
-                    if (value.length < 10) {
-                      return 'Please enter a valid phone number';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 20),
-
-                // Password Field
                 _buildTextField(
                   controller: _passwordController,
                   label: 'Password',
@@ -307,8 +149,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-
-                // Confirm Password Field
                 _buildTextField(
                   controller: _confirmPasswordController,
                   label: 'Confirm Password',
@@ -316,7 +156,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   obscureText: _obscureConfirmPassword,
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                     ),
                     onPressed: () {
                       setState(() {
@@ -335,8 +177,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   },
                 ),
                 const SizedBox(height: 30),
-
-                // Register Button
                 ElevatedButton(
                   onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
@@ -349,7 +189,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
-                          'Register',
+                          'Sign up',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -358,8 +198,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                 ),
                 const SizedBox(height: 20),
-
-                // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -372,7 +210,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const gift_card_login.LoginScreen(),
+                            builder: (context) =>
+                                const gift_card_login.LoginScreen(),
                           ),
                         );
                       },
@@ -421,4 +260,3 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 }
-
