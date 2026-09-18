@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -17,8 +18,8 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDB(String filePath) async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, filePath);
+    // Web sqflite uses a simple IndexedDB-backed name; native needs a filesystem path.
+    final path = kIsWeb ? filePath : join(await getDatabasesPath(), filePath);
 
     return await openDatabase(
       path,

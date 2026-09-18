@@ -1,5 +1,5 @@
 // Service Worker for Malipo Agent PWA
-const CACHE_NAME = 'malipo-agent-v1.0.0';
+const CACHE_NAME = 'malipo-agent-v1.0.1';
 const urlsToCache = [
   '/',
   '/main.dart.js',
@@ -9,7 +9,11 @@ const urlsToCache = [
   '/icons/Icon-192.png',
   '/icons/Icon-512.png',
   '/icons/Icon-maskable-192.png',
-  '/icons/Icon-maskable-512.png'
+  '/icons/Icon-maskable-512.png',
+  '/sqflite_sw.js',
+  '/sqlite3.wasm',
+  '/sql-wasm.js',
+  '/sql-wasm.wasm'
 ];
 
 // Install event - cache resources
@@ -48,8 +52,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - serve from cache, fallback to network.
+// Shared workers and WASM must be fetched by the browser (MIME / CORS).
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  const isWorkerOrWasm =
+    event.request.destination === 'worker' ||
+    event.request.destination === 'sharedworker' ||
+    event.request.destination === 'serviceworker' ||
+    url.pathname.endsWith('sqflite_sw.js') ||
+    url.pathname.endsWith('.wasm');
+  if (isWorkerOrWasm) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

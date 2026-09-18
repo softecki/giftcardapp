@@ -35,10 +35,9 @@ class PlatformDatabaseHelper {
   }
 
   Future<sqlite.Database> _initWebDB(String dbName) async {
-    // For web, we'll use a simple in-memory database approach
-    // This is a fallback since IndexedDB integration is complex
+    // sqflite_common_ffi_web persists this name in IndexedDB via sqflite_sw.js.
     return await sqlite.openDatabase(
-      ':memory:',
+      dbName,
       version: 2,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,

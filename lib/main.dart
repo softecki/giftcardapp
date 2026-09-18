@@ -6,16 +6,17 @@ import 'package:malipo_agent/src/view/screen/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' show PointerDeviceKind;
 import 'package:malipo_agent/core/app_theme.dart';
-import 'package:malipo_agent/src/data/database_helper.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'core/app_color.dart';
 import 'core/app_data.dart';
 import 'generated/assets.dart';
+import 'src/data/sqflite_web_init_stub.dart'
+    if (dart.library.html) 'src/data/sqflite_web_init_web.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initSqfliteForWeb();
   await EasyLocalization.ensureInitialized();
 
   runApp(

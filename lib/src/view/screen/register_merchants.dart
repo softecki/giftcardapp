@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
-import 'dart:isolate';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart' show kIsWeb, compute;
 
 import '../../../core/app_color.dart';
@@ -40,9 +37,9 @@ class _MakePaymentState extends State<MakePayment> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController nidaController = TextEditingController();
 
-  File? _imageFile;
-  File? _secondImageFile;
-  File? _thirdImageFile;
+  XFile? _imageFile;
+  XFile? _secondImageFile;
+  XFile? _thirdImageFile;
   Uint8List? _imageBytes;
   Uint8List? _secondImageBytes;
   Uint8List? _thirdImageBytes;
@@ -52,18 +49,11 @@ class _MakePaymentState extends State<MakePayment> {
         await ImagePicker().pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _imageBytes = bytes;
-          _imageFile = null;
-        });
-      } else {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-          _imageBytes = null;
-        });
-      }
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _imageBytes = bytes;
+        _imageFile = pickedFile;
+      });
     }
   }
 
@@ -72,18 +62,11 @@ class _MakePaymentState extends State<MakePayment> {
         await ImagePicker().pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _secondImageBytes = bytes;
-          _secondImageFile = null;
-        });
-      } else {
-        setState(() {
-          _secondImageFile = File(pickedFile.path);
-          _secondImageBytes = null;
-        });
-      }
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _secondImageBytes = bytes;
+        _secondImageFile = pickedFile;
+      });
     }
   }
 
@@ -92,18 +75,11 @@ class _MakePaymentState extends State<MakePayment> {
         await ImagePicker().pickImage(source: ImageSource.camera);
 
     if (pickedFile != null) {
-      if (kIsWeb) {
-        final bytes = await pickedFile.readAsBytes();
-        setState(() {
-          _thirdImageBytes = bytes;
-          _thirdImageFile = null;
-        });
-      } else {
-        setState(() {
-          _thirdImageFile = File(pickedFile.path);
-          _thirdImageBytes = null;
-        });
-      }
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _thirdImageBytes = bytes;
+        _thirdImageFile = pickedFile;
+      });
     }
   }
 
@@ -200,7 +176,7 @@ class _MakePaymentState extends State<MakePayment> {
   }
 
   Future<void> register(BuildContext context) async {
-    if (!kIsWeb && _imageFile == null || (kIsWeb && _imageBytes == null)) {
+    if (_imageBytes == null) {
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text("Please take a picture of business licence/Tin Number")));
@@ -246,28 +222,19 @@ class _MakePaymentState extends State<MakePayment> {
         'email': emailController.text,
       };
 
-      // Process images in isolate to prevent UI blocking
-      // Compress and encode main image
-      Uint8List? mainCompressed;
-      String fileName;
-      if (kIsWeb) {
-        mainCompressed = await FlutterImageCompress.compressWithList(
-          _imageBytes!,
-          minWidth: 800,
-          minHeight: 800,
-          quality: 70,
-        );
-        fileName = 'document_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      } else {
-        final compressedMain = await FlutterImageCompress.compressWithFile(
-          _imageFile!.path,
-          minWidth: 800,
-          minHeight: 800,
-          quality: 70,
-        );
-        mainCompressed = compressedMain ?? await File(_imageFile!.path).readAsBytes();
-        fileName = path.basename(_imageFile!.path);
+      // Compress and encode main image (bytes work on both web and mobile)
+      Uint8List mainCompressed = await FlutterImageCompress.compressWithList(
+        _imageBytes!,
+        minWidth: 800,
+        minHeight: 800,
+        quality: 70,
+      );
+      if (mainCompressed.isEmpty) {
+        mainCompressed = _imageBytes!;
       }
+      final fileName = (_imageFile?.name.isNotEmpty ?? false)
+          ? _imageFile!.name
+          : 'document_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
       // Encode to base64 in isolate to prevent blocking
       final base64File = await _encodeToBase64(mainCompressed);
@@ -278,9 +245,8 @@ class _MakePaymentState extends State<MakePayment> {
       final futures = <Future>[];
       
       // Second image (if available)
-      if ((!kIsWeb && _secondImageFile != null) || (kIsWeb && _secondImageBytes != null)) {
+      if (_secondImageBytes != null) {
         futures.add(_processImage(
-          isWeb: kIsWeb,
           imageFile: _secondImageFile,
           imageBytes: _secondImageBytes,
           prefix: 'second',
@@ -293,9 +259,8 @@ class _MakePaymentState extends State<MakePayment> {
       }
 
       // Third image (if available)
-      if ((!kIsWeb && _thirdImageFile != null) || (kIsWeb && _thirdImageBytes != null)) {
+      if (_thirdImageBytes != null) {
         futures.add(_processImage(
-          isWeb: kIsWeb,
           imageFile: _thirdImageFile,
           imageBytes: _thirdImageBytes,
           prefix: 'third',
@@ -399,33 +364,24 @@ class _MakePaymentState extends State<MakePayment> {
 
   // Helper method to process images (compress and encode)
   Future<Map<String, String>?> _processImage({
-    required bool isWeb,
-    File? imageFile,
+    XFile? imageFile,
     Uint8List? imageBytes,
     required String prefix,
   }) async {
     try {
-      Uint8List? compressed;
-      String fileName;
-      
-      if (isWeb) {
-        compressed = await FlutterImageCompress.compressWithList(
-          imageBytes!,
-          minWidth: 800,
-          minHeight: 800,
-          quality: 70,
-        );
-        fileName = '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      } else {
-        final compressedResult = await FlutterImageCompress.compressWithFile(
-          imageFile!.path,
-          minWidth: 800,
-          minHeight: 800,
-          quality: 70,
-        );
-        compressed = compressedResult ?? await File(imageFile.path).readAsBytes();
-        fileName = path.basename(imageFile.path);
+      if (imageBytes == null) return null;
+      Uint8List compressed = await FlutterImageCompress.compressWithList(
+        imageBytes,
+        minWidth: 800,
+        minHeight: 800,
+        quality: 70,
+      );
+      if (compressed.isEmpty) {
+        compressed = imageBytes;
       }
+      final fileName = (imageFile?.name.isNotEmpty ?? false)
+          ? imageFile!.name
+          : '${prefix}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       
       // Encode to base64 in isolate
       final base64String = await _encodeToBase64(compressed);
@@ -523,7 +479,7 @@ class _MakePaymentState extends State<MakePayment> {
                   _buildSunkenField(
                     child: GestureDetector(
                       onTap: _pickImage,
-                      child: (!kIsWeb && _imageFile == null) || (kIsWeb && _imageBytes == null)
+                      child: _imageBytes == null
                           ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
@@ -534,19 +490,12 @@ class _MakePaymentState extends State<MakePayment> {
                       )
                           : ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: kIsWeb
-                            ? Image.memory(
-                                _imageBytes!,
-                                height: 180,
-                                width: 220,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.file(
-                                _imageFile!,
-                                height: 180,
-                                width: 220,
-                                fit: BoxFit.cover,
-                              ),
+                        child: Image.memory(
+                          _imageBytes!,
+                          height: 180,
+                          width: 220,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
@@ -558,7 +507,7 @@ class _MakePaymentState extends State<MakePayment> {
                   _buildSunkenField(
                     child: GestureDetector(
                       onTap: _secondPickImage,
-                      child: (!kIsWeb && _secondImageFile == null) || (kIsWeb && _secondImageBytes == null)
+                      child: _secondImageBytes == null
                           ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
@@ -569,19 +518,12 @@ class _MakePaymentState extends State<MakePayment> {
                       )
                           : ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: kIsWeb
-                            ? Image.memory(
-                                _secondImageBytes!,
-                                height: 180,
-                                width: 220,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.file(
-                                _secondImageFile!,
-                                height: 180,
-                                width: 220,
-                                fit: BoxFit.cover,
-                              ),
+                        child: Image.memory(
+                          _secondImageBytes!,
+                          height: 180,
+                          width: 220,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),
@@ -593,7 +535,7 @@ class _MakePaymentState extends State<MakePayment> {
                   _buildSunkenField(
                     child: GestureDetector(
                       onTap: _thirdPickImage,
-                      child: (!kIsWeb && _thirdImageFile == null) || (kIsWeb && _thirdImageBytes == null)
+                      child: _thirdImageBytes == null
                           ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
@@ -604,19 +546,12 @@ class _MakePaymentState extends State<MakePayment> {
                       )
                           : ClipRRect(
                         borderRadius: BorderRadius.circular(12),
-                        child: kIsWeb
-                            ? Image.memory(
-                                _thirdImageBytes!,
-                                height: 180,
-                                width: 220,
-                                fit: BoxFit.cover,
-                              )
-                            : Image.file(
-                                _thirdImageFile!,
-                                height: 180,
-                                width: 220,
-                                fit: BoxFit.cover,
-                              ),
+                        child: Image.memory(
+                          _thirdImageBytes!,
+                          height: 180,
+                          width: 220,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ),

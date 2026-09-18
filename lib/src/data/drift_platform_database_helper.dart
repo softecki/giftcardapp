@@ -1,7 +1,9 @@
 // ignore_for_file: unused_import
 // (imports trimmed)
 import 'package:drift/drift.dart';
-import 'connection_native.dart' if (dart.library.js) 'connection_web.dart';
+import 'connection_native.dart'
+    if (dart.library.html) 'connection_web.dart'
+    if (dart.library.js) 'connection_web.dart';
 // (imports trimmed)
 
 // Drift database setup
