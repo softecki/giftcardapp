@@ -4,7 +4,7 @@ import 'package:malipo_agent/src/model/bottom_nav_bar_item.dart';
 class AppData {
   const AppData._();
 
-  static String url = "https://m-malipo.ubx.co.tz/api";
+  static String url = "https://giftcardportal.softecki.com/api";
   static const String appName = "GiftCard";
   static String School_name = appName;
 

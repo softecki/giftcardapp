@@ -272,7 +272,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                     onPressed: _countdown > 0 || _isResending ? null : _resendOTP,
                     child: Text(
                       _countdown > 0
-                          ? 'Resend in $_countdowns'
+                          ? 'Resend in $_countdown'
                           : 'Resend OTP',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,

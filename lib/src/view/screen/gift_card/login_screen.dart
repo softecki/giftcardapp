@@ -4,6 +4,7 @@ import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
 import 'package:malipo_agent/src/view/widget/gift_card_brand.dart';
 import 'register_screen.dart';
+import 'package:malipo_agent/src/view/screen/login_screen.dart' as agent_login;
 import 'forgot_password_screen.dart';
 import 'otp_verification_screen.dart';
 import 'home_screen.dart';
@@ -86,7 +87,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue.shade50,
+      backgroundColor: const Color(0xFFFDF6F6),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
@@ -295,12 +296,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: const Text(
                         'Register',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
                           color: AppColor.primaryColor,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => agent_login.LoginScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Merchant / agent login'),
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
 import 'package:malipo_agent/models/user_model.dart';
+import 'login_screen.dart' as gift_card_login;
 import 'marketplace_screen.dart';
 import 'my_gift_cards_screen.dart';
 import 'wallet_screen.dart';
@@ -32,8 +33,11 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final response = await _apiService.getMe();
       if (mounted) {
+        final userJson = response['data']?['user'];
         setState(() {
-          _user = UserModel.fromJson(response['data']['user']);
+          _user = userJson is Map
+              ? UserModel.fromJson(Map<String, dynamic>.from(userJson))
+              : null;
           _isLoading = false;
         });
       }
@@ -120,9 +124,19 @@ class _HomeScreenState extends State<HomeScreen> {
     final navItems = _buildBottomNavItems();
 
     return Scaffold(
+      backgroundColor: const Color(0xFFFDF6F6),
       appBar: AppBar(
         title: Text(
           _user?.role == 'business_owner' ? 'Business Dashboard' : 'Gift Cards',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+        flexibleSpace: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFFE54747), Color(0xFF8B1E3F)],
+            ),
+          ),
         ),
         actions: [
           IconButton(
@@ -130,9 +144,11 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () async {
               await _apiService.logout();
               if (mounted) {
-                Navigator.pushNamedAndRemoveUntil(
+                Navigator.pushAndRemoveUntil(
                   context,
-                  '/login',
+                  MaterialPageRoute(
+                    builder: (_) => const gift_card_login.LoginScreen(),
+                  ),
                   (route) => false,
                 );
               }

@@ -44,17 +44,18 @@ class GiftCardModel {
 
   factory GiftCardModel.fromJson(Map<String, dynamic> json) {
     return GiftCardModel(
-      id: json['id'],
-      businessId: json['business_id'],
-      customerId: json['customer_id'],
-      cardCode: json['card_code'],
+      id: int.tryParse('${json['id']}') ?? 0,
+      businessId: int.tryParse('${json['business_id']}') ?? 0,
+      customerId: int.tryParse('${json['customer_id']}') ?? 0,
+      cardCode: json['card_code']?.toString() ?? '',
       qrCode: json['qr_code'],
       originalAmount: (json['original_amount'] ?? 0).toDouble(),
       currentBalance: (json['current_balance'] ?? 0).toDouble(),
-      status: json['status'],
-      expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at']) : null,
-      purchasedAt: DateTime.parse(json['purchased_at']),
-      redeemedAt: json['redeemed_at'] != null ? DateTime.parse(json['redeemed_at']) : null,
+      status: json['status']?.toString() ?? 'active',
+      expiresAt: json['expires_at'] != null ? DateTime.tryParse('${json['expires_at']}') : null,
+      purchasedAt: DateTime.tryParse('${json['purchased_at'] ?? json['created_at']}') ??
+          DateTime.now(),
+      redeemedAt: json['redeemed_at'] != null ? DateTime.tryParse('${json['redeemed_at']}') : null,
       purchaseNote: json['purchase_note'],
       redemptionNote: json['redemption_note'],
       recipientEmail: json['recipient_email'],

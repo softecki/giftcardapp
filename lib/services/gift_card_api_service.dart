@@ -43,11 +43,32 @@ class GiftCardApiService {
   
   // Handle response
   Map<String, dynamic> _handleResponse(http.Response response) {
+    Map<String, dynamic> body;
+    try {
+      final decoded = jsonDecode(response.body);
+      body = decoded is Map<String, dynamic> ? decoded : {'data': decoded};
+    } catch (_) {
+      throw Exception('Invalid server response');
+    }
+
     if (response.statusCode >= 200 && response.statusCode < 300) {
-      return jsonDecode(response.body);
-    } else {
-      final error = jsonDecode(response.body);
-      throw Exception(error['data']['message'] ?? 'Request failed');
+      return body;
+    }
+
+    final data = body['data'];
+    final message = (data is Map && data['message'] != null)
+        ? data['message'].toString()
+        : (body['message'] ?? 'Request failed').toString();
+    throw Exception(message);
+  }
+
+  Future<void> _persistToken(Map<String, dynamic> data) async {
+    final payload = data['data'];
+    if (payload is Map) {
+      final token = payload['token'] ?? payload['access_token'];
+      if (token != null) {
+        await _saveToken(token.toString());
+      }
     }
   }
   
@@ -72,9 +93,7 @@ class GiftCardApiService {
     );
     
     final data = _handleResponse(response);
-    if (data['data']['token'] != null) {
-      await _saveToken(data['data']['token']);
-    }
+    await _persistToken(data);
     return data;
   }
   
@@ -94,9 +113,7 @@ class GiftCardApiService {
     );
     
     final data = _handleResponse(response);
-    if (data['data']['token'] != null) {
-      await _saveToken(data['data']['token']);
-    }
+    await _persistToken(data);
     return data;
   }
   

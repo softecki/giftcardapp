@@ -1,3 +1,5 @@
+import 'business_model.dart';
+
 class UserModel {
   final int id;
   final String name;
@@ -6,6 +8,7 @@ class UserModel {
   final String role;
   final String status;
   final bool otpVerified;
+  final BusinessModel? business;
 
   UserModel({
     required this.id,
@@ -15,17 +18,21 @@ class UserModel {
     required this.role,
     required this.status,
     required this.otpVerified,
+    this.business,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
-      name: json['name'],
-      email: json['email'],
-      phone: json['phone'],
-      role: json['role'],
-      status: json['status'],
-      otpVerified: json['otp_verified'] ?? false,
+      id: int.tryParse('${json['id']}') ?? 0,
+      name: json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      phone: json['phone']?.toString() ?? '',
+      role: json['role']?.toString() ?? 'customer',
+      status: json['status']?.toString() ?? 'active',
+      otpVerified: json['otp_verified'] == true || json['otp_verified'] == 1,
+      business: json['business'] is Map<String, dynamic>
+          ? BusinessModel.fromJson(json['business'])
+          : null,
     );
   }
 
@@ -38,6 +45,7 @@ class UserModel {
       'role': role,
       'status': status,
       'otp_verified': otpVerified,
+      'business': business?.toJson(),
     };
   }
 }

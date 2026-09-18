@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:malipo_agent/src/view/screen/encryptdecrpty.dart';
-import 'package:malipo_agent/src/view/screen/login_screen.dart';
+import 'src/view/screen/gift_card/login_screen.dart' as gift_card_login;
 import 'package:flutter/material.dart';
 import 'dart:ui' show PointerDeviceKind;
 import 'package:malipo_agent/core/app_theme.dart';
@@ -91,24 +91,35 @@ class _SplashScreenState extends State<SplashScreen> {
         headers: {'Content-Type': 'application/json'},
         body: encryptedBody,
       );
-      final decryptresponse = ApiCrypto.decryptResponse(response.body);
-      print(decryptresponse);
-      if (response.statusCode == 200) {
-        final data = decryptresponse['data'];
-        Navigator.of(context).pop(); // Close loading
+
+      Map<String, dynamic>? payload;
+      try {
+        payload = ApiCrypto.decryptResponse(response.body);
+      } catch (_) {
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            payload = decoded;
+          }
+        } catch (_) {}
+      }
+
+      if (context.mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      if (response.statusCode == 200 && payload != null) {
+        if (!context.mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) =>  LoginScreen(),
+            builder: (_) => const gift_card_login.LoginScreen(),
           ),
         );
       } else {
-        Navigator.of(context).pop();
-        final errorMsg = jsonDecode(response.body)['message'] ?? 'Splash failed';
-        _showError(errorMsg);
+        _showError('Could not reach GiftCard servers. Please try again.');
       }
     } catch (e) {
-
       _showError(e.toString());
     }
   }
