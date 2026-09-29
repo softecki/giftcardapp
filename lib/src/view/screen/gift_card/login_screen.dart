@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:easy_localization/easy_localization.dart';
+import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
 import 'package:malipo_agent/src/view/widget/gift_card_brand.dart';
@@ -18,19 +18,16 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _phoneController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isLoading = false;
-  bool _usePhone = false;
 
   final _apiService = GiftCardApiService();
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _phoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -45,9 +42,9 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
+      final identifier = _identifierController.text.trim();
       final response = await _apiService.login(
-        email: _usePhone ? null : _emailController.text.trim(),
-        phone: _usePhone ? _phoneController.text.trim() : null,
+        identifier: identifier,
         password: _passwordController.text,
       );
 
@@ -55,12 +52,13 @@ class _LoginScreenState extends State<LoginScreen> {
       final payload = response['data'];
       final otpRequired = payload is Map && payload['otp_required'] == true;
       if (otpRequired) {
+        final isEmail = identifier.contains('@');
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => OTPVerificationScreen(
-              email: _usePhone ? null : _emailController.text.trim(),
-              phone: _usePhone ? _phoneController.text.trim() : null,
+              email: isEmail ? identifier : null,
+              phone: isEmail ? null : identifier,
             ),
           ),
         );
@@ -121,92 +119,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 40),
 
-                // Toggle between Email and Phone
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () => setState(() => _usePhone = false),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: !_usePhone
-                              ? AppColor.primaryColor
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColor.primaryColor,
-                          ),
-                        ),
-                        child: Text(
-                          'Email',
-                          style: TextStyle(
-                            color: !_usePhone ? Colors.white : AppColor.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => setState(() => _usePhone = true),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _usePhone
-                              ? AppColor.primaryColor
-                              : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColor.primaryColor,
-                          ),
-                        ),
-                        child: Text(
-                          'Phone',
-                          style: TextStyle(
-                            color: _usePhone ? Colors.white : AppColor.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                _buildTextField(
+                  controller: _identifierController,
+                  label: 'Email or phone number',
+                  icon: Icons.person_outline,
+                  keyboardType: TextInputType.text,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Enter your email or phone number';
+                    }
+                    return null;
+                  },
                 ),
-                const SizedBox(height: 30),
-
-                // Email or Phone Field
-                if (!_usePhone)
-                  _buildTextField(
-                    controller: _emailController,
-                    label: 'Email',
-                    icon: Icons.email,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your email';
-                      }
-                      return null;
-                    },
-                  )
-                else
-                  _buildTextField(
-                    controller: _phoneController,
-                    label: 'Phone Number',
-                    icon: Icons.phone,
-                    keyboardType: TextInputType.phone,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter your phone number';
-                      }
-                      return null;
-                    },
-                  ),
                 const SizedBox(height: 20),
 
                 // Password Field

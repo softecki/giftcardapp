@@ -30,10 +30,17 @@ class UserModel {
       role: json['role']?.toString() ?? 'customer',
       status: json['status']?.toString() ?? 'active',
       otpVerified: json['otp_verified'] == true || json['otp_verified'] == 1,
-      business: json['business'] is Map<String, dynamic>
-          ? BusinessModel.fromJson(json['business'])
-          : null,
+      business: _parseBusiness(json['business']),
     );
+  }
+
+  static BusinessModel? _parseBusiness(dynamic raw) {
+    if (raw is! Map) return null;
+    try {
+      return BusinessModel.fromJson(Map<String, dynamic>.from(raw));
+    } catch (_) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {

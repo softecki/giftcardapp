@@ -100,14 +100,15 @@ class GiftCardApiService {
   Future<Map<String, dynamic>> login({
     String? email,
     String? phone,
+    String? identifier,
     required String password,
   }) async {
+    final loginId = (identifier ?? email ?? phone ?? '').trim();
     final response = await http.post(
       Uri.parse('$baseUrl/login'),
       headers: await _getHeaders(),
       body: jsonEncode({
-        if (email != null) 'email': email,
-        if (phone != null) 'phone': phone,
+        'identifier': loginId,
         'password': password,
       }),
     );

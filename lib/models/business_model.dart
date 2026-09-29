@@ -1,5 +1,25 @@
 import 'category_model.dart';
 
+double? _asDouble(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value.toDouble();
+  return double.tryParse(value.toString());
+}
+
+int _asInt(dynamic value, [int fallback = 0]) {
+  if (value == null) return fallback;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString()) ?? fallback;
+}
+
+bool _asBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final s = value?.toString().toLowerCase();
+  return s == 'true' || s == '1';
+}
+
 class BusinessModel {
   final int id;
   final int userId;
@@ -50,33 +70,51 @@ class BusinessModel {
   });
 
   factory BusinessModel.fromJson(Map<String, dynamic> json) {
+    List<double>? denominations;
+    final rawDenoms = json['denominations'];
+    if (rawDenoms is List) {
+      denominations = rawDenoms.map(_asDouble).whereType<double>().toList();
+    }
+
+    List<CategoryModel>? categories;
+    final rawCats = json['categories'];
+    if (rawCats is List) {
+      categories = rawCats
+          .whereType<Map>()
+          .map((c) {
+            try {
+              return CategoryModel.fromJson(Map<String, dynamic>.from(c));
+            } catch (_) {
+              return null;
+            }
+          })
+          .whereType<CategoryModel>()
+          .toList();
+    }
+
     return BusinessModel(
-      id: json['id'],
-      userId: json['user_id'],
-      name: json['name'],
+      id: _asInt(json['id']),
+      userId: _asInt(json['user_id']),
+      name: json['name']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
-      description: json['description'],
-      logo: json['logo'],
-      banner: json['banner'],
-      email: json['email'],
+      description: json['description']?.toString(),
+      logo: json['logo']?.toString(),
+      banner: json['banner']?.toString(),
+      email: json['email']?.toString(),
       phone: json['phone']?.toString() ?? '',
-      address: json['address'],
-      city: json['city'],
-      country: json['country'] ?? 'Tanzania',
-      latitude: json['latitude']?.toDouble(),
-      longitude: json['longitude']?.toDouble(),
-      website: json['website'],
-      denominations: json['denominations'] != null
-          ? List<double>.from(json['denominations'])
-          : null,
-      status: json['status'],
-      isFeatured: json['is_featured'] ?? false,
-      rating: (json['rating'] ?? 0).toDouble(),
-      totalReviews: json['total_reviews'] ?? 0,
-      walletBalance: (json['wallet_balance'] ?? 0).toDouble(),
-      categories: json['categories'] != null
-          ? (json['categories'] as List).map((c) => CategoryModel.fromJson(c)).toList()
-          : null,
+      address: json['address']?.toString(),
+      city: json['city']?.toString(),
+      country: json['country']?.toString() ?? 'Tanzania',
+      latitude: _asDouble(json['latitude']),
+      longitude: _asDouble(json['longitude']),
+      website: json['website']?.toString(),
+      denominations: denominations,
+      status: json['status']?.toString() ?? 'pending',
+      isFeatured: _asBool(json['is_featured']),
+      rating: _asDouble(json['rating']) ?? 0,
+      totalReviews: _asInt(json['total_reviews']),
+      walletBalance: _asDouble(json['wallet_balance']) ?? 0,
+      categories: categories,
     );
   }
 

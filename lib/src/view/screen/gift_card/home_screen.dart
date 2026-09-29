@@ -36,15 +36,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadUser() async {
     try {
       final response = await _apiService.getMe();
-      if (mounted) {
-        final userJson = response['data']?['user'];
-        setState(() {
-          _user = userJson is Map
-              ? UserModel.fromJson(Map<String, dynamic>.from(userJson))
-              : null;
-          _isLoading = false;
-        });
+      if (!mounted) return;
+      final payload = response['data'];
+      dynamic userJson;
+      if (payload is Map) {
+        userJson = payload['user'] ?? payload;
       }
+      UserModel? user;
+      if (userJson is Map) {
+        try {
+          user = UserModel.fromJson(Map<String, dynamic>.from(userJson));
+        } catch (_) {
+          user = null;
+        }
+      }
+      setState(() {
+        _user = user;
+        _isLoading = false;
+      });
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -56,9 +65,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Widget> _screens() {
     if (_user == null) {
-      return const [
-        Center(child: Text('Could not load profile. Log out and try again.')),
-        Center(child: Text('Could not load profile. Log out and try again.')),
+      return [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Could not load profile. Log out and try again.',
+                  textAlign: TextAlign.center,
+                ),
+                TextButton(onPressed: _loadUser, child: const Text('Retry')),
+              ],
+            ),
+          ),
+        ),
+        const Center(child: Text('')),
       ];
     }
     if (_isMerchant) {

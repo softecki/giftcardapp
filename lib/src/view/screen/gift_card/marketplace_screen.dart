@@ -54,7 +54,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             .toList();
         _businesses = bizList
             .whereType<Map>()
-            .map((e) => BusinessModel.fromJson(Map<String, dynamic>.from(e)))
+            .map((e) {
+              try {
+                return BusinessModel.fromJson(Map<String, dynamic>.from(e));
+              } catch (_) {
+                return null;
+              }
+            })
+            .whereType<BusinessModel>()
             .toList();
         _loading = false;
       });
