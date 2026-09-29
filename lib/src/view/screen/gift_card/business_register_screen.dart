@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:malipo_agent/core/app_color.dart';
 import 'package:malipo_agent/models/category_model.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
+import 'home_screen.dart';
 
 class BusinessRegisterScreen extends StatefulWidget {
-  const BusinessRegisterScreen({super.key});
+  const BusinessRegisterScreen({super.key, this.fromSignup = false});
+
+  final bool fromSignup;
 
   @override
   State<BusinessRegisterScreen> createState() => _BusinessRegisterScreenState();
@@ -26,6 +29,7 @@ class _BusinessRegisterScreenState extends State<BusinessRegisterScreen> {
     super.initState();
     _api.getCategories().then((res) {
       final list = (res['data']?['categories'] as List?) ?? [];
+      if (!mounted) return;
       setState(() {
         _categories = list
             .whereType<Map>()
@@ -58,9 +62,13 @@ class _BusinessRegisterScreenState extends State<BusinessRegisterScreen> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Business submitted for review')),
+        const SnackBar(content: Text('Your shop is live. You can design card amounts next.')),
       );
-      Navigator.pop(context);
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (_) => false,
+      );
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -75,67 +83,76 @@ class _BusinessRegisterScreenState extends State<BusinessRegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.cream,
       appBar: AppBar(
-        title: const Text('Register business'),
-        foregroundColor: Colors.white,
+        title: const Text('Set up your shop'),
         backgroundColor: AppColor.primaryColor,
+        automaticallyImplyLeading: !widget.fromSignup,
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            const Text(
+              'Customers will see this when they buy your gift cards.',
+              style: TextStyle(height: 1.4),
+            ),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _name,
-              decoration: const InputDecoration(labelText: 'Business name'),
+              decoration: const InputDecoration(labelText: 'Shop name'),
               validator: (v) => v == null || v.isEmpty ? 'Required' : null,
             ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _phone,
-              decoration: const InputDecoration(labelText: 'Phone'),
+              decoration: const InputDecoration(labelText: 'Shop phone'),
               validator: (v) => v == null || v.isEmpty ? 'Required' : null,
             ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _city,
               decoration: const InputDecoration(labelText: 'City'),
             ),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _desc,
               maxLines: 3,
-              decoration: const InputDecoration(labelText: 'Description'),
+              decoration: const InputDecoration(
+                labelText: 'Describe your cards / brand',
+              ),
             ),
-            const SizedBox(height: 12),
-            const Text('Categories'),
-            Wrap(
-              spacing: 8,
-              children: _categories
-                  .map(
-                    (c) => FilterChip(
-                      label: Text(c.name),
-                      selected: _selectedCats.contains(c.id),
-                      onSelected: (on) {
-                        setState(() {
-                          if (on) {
-                            _selectedCats.add(c.id);
-                          } else {
-                            _selectedCats.remove(c.id);
-                          }
-                        });
-                      },
-                    ),
-                  )
-                  .toList(),
-            ),
-            const SizedBox(height: 20),
+            if (_categories.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              const Text('Categories', style: TextStyle(fontWeight: FontWeight.w700)),
+              Wrap(
+                spacing: 8,
+                children: _categories
+                    .map(
+                      (c) => FilterChip(
+                        label: Text(c.name),
+                        selected: _selectedCats.contains(c.id),
+                        onSelected: (on) {
+                          setState(() {
+                            if (on) {
+                              _selectedCats.add(c.id);
+                            } else {
+                              _selectedCats.remove(c.id);
+                            }
+                          });
+                        },
+                      ),
+                    )
+                    .toList(),
+              ),
+            ],
+            const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _saving ? null : _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                foregroundColor: Colors.white,
-              ),
               child: _saving
                   ? const CircularProgressIndicator(color: Colors.white)
-                  : const Text('Submit'),
+                  : const Text('Publish shop'),
             ),
           ],
         ),

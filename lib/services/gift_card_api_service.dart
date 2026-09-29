@@ -310,6 +310,32 @@ class GiftCardApiService {
     
     return _handleResponse(response);
   }
+
+  Future<Map<String, dynamic>> updateBusiness({
+    required int id,
+    String? name,
+    String? description,
+    List<double>? denominations,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/business/$id'),
+      headers: await _getHeaders(includeAuth: true),
+      body: jsonEncode({
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (denominations != null) 'denominations': denominations,
+      }),
+    );
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> getIssuedCards() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/gift-cards/issued'),
+      headers: await _getHeaders(includeAuth: true),
+    );
+    return _handleResponse(response);
+  }
   
   Future<Map<String, dynamic>> getBusinessDashboard() async {
     final response = await http.get(

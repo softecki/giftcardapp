@@ -143,9 +143,26 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
           else if (_businesses.isEmpty)
             SliverFillRemaining(
               child: Center(
-                child: Text(
-                  'No brands yet. Pull to refresh.',
-                  style: TextStyle(color: Colors.grey[600]),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.storefront_outlined, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No shops to browse yet',
+                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'When a merchant registers and their shop is live, gift cards appear here.',
+                        style: TextStyle(color: Colors.grey[600], height: 1.4),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )

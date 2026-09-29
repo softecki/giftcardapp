@@ -51,23 +51,24 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      if (mounted) {
-        if (response['data']['otp_required'] == true) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OTPVerificationScreen(
-                email: _usePhone ? null : _emailController.text.trim(),
-                phone: _usePhone ? _phoneController.text.trim() : null,
-              ),
+      if (!mounted) return;
+      final payload = response['data'];
+      final otpRequired = payload is Map && payload['otp_required'] == true;
+      if (otpRequired) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OTPVerificationScreen(
+              email: _usePhone ? null : _emailController.text.trim(),
+              phone: _usePhone ? _phoneController.text.trim() : null,
             ),
-          );
-        } else {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
-        }
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -111,9 +112,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  'Sign in to continue',
+                  'Customers buy cards. Merchants design and redeem.',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     color: Colors.grey[600],
                   ),
                   textAlign: TextAlign.center,

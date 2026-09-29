@@ -56,14 +56,27 @@ class _MyGiftCardsScreenState extends State<MyGiftCardsScreen> {
     }
     if (_cards.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.card_giftcard, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 12),
-            const Text('No gift cards yet'),
-            TextButton(onPressed: _load, child: const Text('Refresh')),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.card_giftcard, size: 72, color: Colors.grey[400]),
+              const SizedBox(height: 16),
+              const Text(
+                'Your cards will show here',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Buy a gift card from Shop, then copy the code or show it at the merchant.',
+                style: TextStyle(color: Colors.grey[600], height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              TextButton(onPressed: _load, child: const Text('Refresh')),
+            ],
+          ),
         ),
       );
     }

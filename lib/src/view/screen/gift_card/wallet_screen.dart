@@ -138,8 +138,23 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 8),
           if (_tx.isEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 24),
-              child: Text('No transactions yet', style: TextStyle(color: Colors.grey[600])),
+              padding: const EdgeInsets.only(top: 32),
+              child: Column(
+                children: [
+                  Icon(Icons.receipt_long_outlined, size: 48, color: Colors.grey[400]),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No wallet activity yet',
+                    style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Top up to buy gift cards from the shop tab.',
+                    style: TextStyle(color: Colors.grey[600]),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             )
           else
             ..._tx.map((raw) {

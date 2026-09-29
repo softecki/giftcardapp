@@ -3,48 +3,57 @@ import 'package:flutter/material.dart';
 class AppTheme {
   const AppTheme._();
 
+  static const _red = Color(0xFFE54747);
+
   static ThemeData lightAppTheme = ThemeData(
+    useMaterial3: true,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: _red,
+      primary: _red,
+      surface: const Color(0xFFFDF6F6),
+    ),
+    scaffoldBackgroundColor: const Color(0xFFFDF6F6),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.all(12),
-        backgroundColor: const Color(0xFFf16b26),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        backgroundColor: _red,
+        foregroundColor: Colors.white,
+        elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
-      style: TextButton.styleFrom(foregroundColor: Colors.deepOrange),
+      style: TextButton.styleFrom(foregroundColor: _red),
     ),
-    iconTheme: const IconThemeData(color: Color(0xFFA6A3A0)),
-    textTheme: const TextTheme(
-      displayLarge: TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
       ),
-      displayMedium: TextStyle(
-        fontSize: 19,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Color(0xFFE8DADA)),
       ),
-      displaySmall: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _red, width: 1.5),
       ),
-      headlineMedium: TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.w500,
-        color: Colors.black,
-      ),
-      headlineSmall: TextStyle(fontSize: 15, color: Colors.grey),
-      titleLarge: TextStyle(fontSize: 12),
     ),
     appBarTheme: const AppBarTheme(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: true,
+      foregroundColor: Colors.white,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      selectedItemColor: _red,
+      unselectedItemColor: Color(0xFFA6A3A0),
+      type: BottomNavigationBarType.fixed,
+      backgroundColor: Colors.white,
     ),
   );
 }

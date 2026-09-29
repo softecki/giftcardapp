@@ -4,6 +4,7 @@ import 'package:malipo_agent/services/gift_card_api_service.dart';
 import 'package:malipo_agent/src/view/widget/gift_card_brand.dart';
 import 'login_screen.dart' as gift_card_login;
 import 'home_screen.dart';
+import 'business_register_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -20,6 +21,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+  String _role = 'customer';
 
   final _apiService = GiftCardApiService();
 
@@ -32,25 +34,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
     try {
       await _apiService.register(
         email: _emailController.text.trim(),
         password: _passwordController.text,
+        role: _role,
       );
-
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
-      );
+      if (_role == 'business_owner') {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const BusinessRegisterScreen(fromSignup: true),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -58,21 +63,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
         );
       }
     } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF6F6),
+      backgroundColor: AppColor.cream,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
@@ -80,150 +80,128 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const GiftCardBrand(iconSize: 48, fontSize: 22),
-                const SizedBox(height: 20),
-                Text(
-                  'Create Account',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                const GiftCardBrand(iconSize: 44, fontSize: 22),
                 const SizedBox(height: 8),
-                Text(
-                  'Sign up with email and password',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                  ),
+                const Text(
+                  'Create your account',
                   textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800),
                 ),
-                const SizedBox(height: 32),
-                _buildTextField(
+                const SizedBox(height: 6),
+                Text(
+                  'Choose how you will use GiftCard',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 24),
+                _RoleTile(
+                  selected: _role == 'customer',
+                  icon: Icons.shopping_bag_outlined,
+                  title: 'Customer',
+                  subtitle: 'Browse shops and buy gift cards',
+                  onTap: () => setState(() => _role = 'customer'),
+                ),
+                const SizedBox(height: 10),
+                _RoleTile(
+                  selected: _role == 'business_owner',
+                  icon: Icons.storefront_outlined,
+                  title: 'Merchant',
+                  subtitle: 'Design cards, sell them, and redeem at your shop',
+                  onTap: () => setState(() => _role = 'business_owner'),
+                ),
+                const SizedBox(height: 24),
+                TextFormField(
                   controller: _emailController,
-                  label: 'Email',
-                  icon: Icons.email,
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Please enter a valid email';
-                    }
+                  decoration: const InputDecoration(
+                    labelText: 'Email',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Enter your email';
+                    if (!v.contains('@')) return 'Enter a valid email';
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
-                _buildTextField(
+                const SizedBox(height: 14),
+                TextFormField(
                   controller: _passwordController,
-                  label: 'Password',
-                  icon: Icons.lock,
                   obscureText: _obscurePassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      return 'Password must be at least 6 characters';
+                  validator: (v) {
+                    if (v == null || v.length < 6) {
+                      return 'At least 6 characters';
                     }
                     return null;
                   },
                 ),
-                const SizedBox(height: 20),
-                _buildTextField(
+                const SizedBox(height: 14),
+                TextFormField(
                   controller: _confirmPasswordController,
-                  label: 'Confirm Password',
-                  icon: Icons.lock_outline,
                   obscureText: _obscureConfirmPassword,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscureConfirmPassword
+                  decoration: InputDecoration(
+                    labelText: 'Confirm password',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscureConfirmPassword
                           ? Icons.visibility_off
-                          : Icons.visibility,
+                          : Icons.visibility),
+                      onPressed: () => setState(
+                        () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _obscureConfirmPassword = !_obscureConfirmPassword;
-                      });
-                    },
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
+                  validator: (v) {
+                    if (v != _passwordController.text) {
                       return 'Passwords do not match';
                     }
                     return null;
                   },
                 ),
-                const SizedBox(height: 30),
+                const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _register,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColor.primaryColor,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Sign up',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
                             color: Colors.white,
                           ),
+                        )
+                      : Text(
+                          _role == 'business_owner'
+                              ? 'Continue as merchant'
+                              : 'Sign up as customer',
                         ),
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Already have an account? ',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const gift_card_login.LoginScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Login',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: AppColor.primaryColor,
-                        ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const gift_card_login.LoginScreen(),
                       ),
-                    ),
-                  ],
+                    );
+                  },
+                  child: const Text('Already have an account? Log in'),
                 ),
               ],
             ),
@@ -232,30 +210,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
+}
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    bool obscureText = false,
-    TextInputType? keyboardType,
-    Widget? suffixIcon,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+class _RoleTile extends StatelessWidget {
+  const _RoleTile({
+    required this.selected,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final bool selected;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: selected ? AppColor.primaryColor : Colors.white,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Icon(icon, color: selected ? Colors.white : AppColor.primaryColor),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: selected ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: selected
+                            ? Colors.white.withOpacity(0.9)
+                            : Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                selected ? Icons.check_circle : Icons.circle_outlined,
+                color: selected ? Colors.white : Colors.grey,
+              ),
+            ],
+          ),
         ),
-        filled: true,
-        fillColor: Colors.white,
       ),
     );
   }

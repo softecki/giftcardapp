@@ -8,6 +8,8 @@ import 'my_gift_cards_screen.dart';
 import 'wallet_screen.dart';
 import 'business_dashboard_screen.dart';
 import 'business_register_screen.dart';
+import 'design_cards_screen.dart';
+import 'redeem_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -22,6 +24,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
 
   final _apiService = GiftCardApiService();
+
+  bool get _isMerchant => _user?.role == 'business_owner';
 
   @override
   void initState() {
@@ -50,66 +54,73 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  List<Widget> _buildScreens() {
+  List<Widget> _screens() {
     if (_user == null) {
-      return [
-        const Center(child: CircularProgressIndicator()),
-        const Center(child: CircularProgressIndicator()),
-        const Center(child: CircularProgressIndicator()),
+      return const [
+        Center(child: Text('Could not load profile. Log out and try again.')),
+        Center(child: Text('Could not load profile. Log out and try again.')),
       ];
     }
-
-    if (_user!.role == 'business_owner') {
-      return [
-        const BusinessDashboardScreen(),
-        const MarketplaceScreen(),
-        const WalletScreen(),
-      ];
-    } else {
-      return [
-        const MarketplaceScreen(),
-        const MyGiftCardsScreen(),
-        const WalletScreen(),
+    if (_isMerchant) {
+      if (_user!.business == null) {
+        return [
+          _SetupShop(
+            onSetup: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const BusinessRegisterScreen(),
+                ),
+              );
+              _loadUser();
+            },
+          ),
+          const WalletScreen(),
+        ];
+      }
+      return const [
+        BusinessDashboardScreen(),
+        DesignCardsScreen(),
+        RedeemScreen(),
+        WalletScreen(),
       ];
     }
+    return const [
+      MarketplaceScreen(),
+      MyGiftCardsScreen(),
+      WalletScreen(),
+    ];
   }
 
-  List<BottomNavigationBarItem> _buildBottomNavItems() {
+  List<BottomNavigationBarItem> _nav() {
     if (_user == null) {
-      return [];
-    }
-
-    if (_user!.role == 'business_owner') {
-      return [
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard),
-          label: 'Dashboard',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.store),
-          label: 'Marketplace',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.account_balance_wallet),
-          label: 'Wallet',
-        ),
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
       ];
-    } else {
-      return [
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.store),
-          label: 'Marketplace',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.card_giftcard),
-          label: 'My Cards',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.account_balance_wallet),
+    }
+    if (_isMerchant && _user!.business == null) {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.storefront), label: 'Shop'),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.account_balance_wallet_outlined),
           label: 'Wallet',
         ),
       ];
     }
+    if (_isMerchant) {
+      return const [
+        BottomNavigationBarItem(icon: Icon(Icons.dashboard_outlined), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.palette_outlined), label: 'Cards'),
+        BottomNavigationBarItem(icon: Icon(Icons.qr_code_scanner), label: 'Redeem'),
+        BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Wallet'),
+      ];
+    }
+    return const [
+      BottomNavigationBarItem(icon: Icon(Icons.storefront_outlined), label: 'Shop'),
+      BottomNavigationBarItem(icon: Icon(Icons.card_giftcard), label: 'My cards'),
+      BottomNavigationBarItem(icon: Icon(Icons.account_balance_wallet_outlined), label: 'Wallet'),
+    ];
   }
 
   @override
@@ -120,72 +131,97 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final screens = _buildScreens();
-    final navItems = _buildBottomNavItems();
+    final screens = _screens();
+    final nav = _nav();
+    final index = _currentIndex.clamp(0, screens.length - 1);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFDF6F6),
+      backgroundColor: AppColor.cream,
       appBar: AppBar(
-        title: Text(
-          _user?.role == 'business_owner' ? 'Business Dashboard' : 'Gift Cards',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFE54747), Color(0xFF8B1E3F)],
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _isMerchant ? 'Merchant' : 'GiftCard',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
             ),
-          ),
+            if (_user?.name != null)
+              Text(
+                _user!.name,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+              ),
+          ],
         ),
+        backgroundColor: AppColor.primaryColor,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await _apiService.logout();
-              if (mounted) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const gift_card_login.LoginScreen(),
-                  ),
-                  (route) => false,
-                );
-              }
+              try {
+                await _apiService.logout();
+              } catch (_) {}
+              if (!mounted) return;
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const gift_card_login.LoginScreen(),
+                ),
+                (route) => false,
+              );
             },
           ),
         ],
       ),
       body: IndexedStack(
-        index: _currentIndex,
+        index: index,
         children: screens,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: navItems,
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: AppColor.primaryColor,
+        unselectedItemColor: Colors.grey[600],
+        currentIndex: index,
+        onTap: (i) {
+          setState(() => _currentIndex = i);
+        },
+        items: nav,
       ),
-      floatingActionButton: _user?.role == 'business_owner' &&
-              _user?.business == null
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const BusinessRegisterScreen(),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.add_business),
-              label: const Text('Register Business'),
-            )
-          : null,
     );
   }
 }
 
+class _SetupShop extends StatelessWidget {
+  const _SetupShop({required this.onSetup});
+
+  final VoidCallback onSetup;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.storefront, size: 72, color: AppColor.primaryColor),
+          const SizedBox(height: 16),
+          const Text(
+            'Finish setting up your shop',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Add your shop name and card amounts so customers can buy, then redeem codes in the app.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey[700], height: 1.4),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: onSetup,
+            child: const Text('Create shop'),
+          ),
+        ],
+      ),
+    );
+  }
+}
