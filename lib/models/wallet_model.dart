@@ -1,3 +1,5 @@
+import 'json_num.dart';
+
 class WalletModel {
   final int id;
   final int? userId;
@@ -21,14 +23,14 @@ class WalletModel {
 
   factory WalletModel.fromJson(Map<String, dynamic> json) {
     return WalletModel(
-      id: json['id'],
-      userId: json['user_id'],
-      walletType: json['wallet_type'],
-      walletNumber: json['wallet_number'],
-      walletName: json['wallet_name'],
-      phoneNumber: json['phone_number'],
-      walletBalance: (json['wallet_balance'] ?? 0).toDouble(),
-      status: json['status'],
+      id: parseJsonInt(json['id']),
+      userId: json['user_id'] == null ? null : parseJsonInt(json['user_id']),
+      walletType: json['wallet_type']?.toString() ?? 'customer',
+      walletNumber: json['wallet_number']?.toString() ?? '',
+      walletName: json['wallet_name']?.toString() ?? '',
+      phoneNumber: json['phone_number']?.toString() ?? '',
+      walletBalance: parseJsonDouble(json['wallet_balance']),
+      status: json['status']?.toString() ?? 'active',
     );
   }
 

@@ -1,5 +1,6 @@
 import 'business_model.dart';
 import 'user_model.dart';
+import 'json_num.dart';
 
 class GiftCardModel {
   final int id;
@@ -49,8 +50,8 @@ class GiftCardModel {
       customerId: int.tryParse('${json['customer_id']}') ?? 0,
       cardCode: json['card_code']?.toString() ?? '',
       qrCode: json['qr_code'],
-      originalAmount: (json['original_amount'] ?? 0).toDouble(),
-      currentBalance: (json['current_balance'] ?? 0).toDouble(),
+      originalAmount: parseJsonDouble(json['original_amount']),
+      currentBalance: parseJsonDouble(json['current_balance']),
       status: json['status']?.toString() ?? 'active',
       expiresAt: json['expires_at'] != null ? DateTime.tryParse('${json['expires_at']}') : null,
       purchasedAt: DateTime.tryParse('${json['purchased_at'] ?? json['created_at']}') ??
@@ -61,8 +62,12 @@ class GiftCardModel {
       recipientEmail: json['recipient_email'],
       recipientPhone: json['recipient_phone'],
       recipientName: json['recipient_name'],
-      business: json['business'] != null ? BusinessModel.fromJson(json['business']) : null,
-      customer: json['customer'] != null ? UserModel.fromJson(json['customer']) : null,
+      business: json['business'] is Map
+          ? BusinessModel.fromJson(Map<String, dynamic>.from(json['business'] as Map))
+          : null,
+      customer: json['customer'] is Map
+          ? UserModel.fromJson(Map<String, dynamic>.from(json['customer'] as Map))
+          : null,
     );
   }
 

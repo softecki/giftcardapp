@@ -1,24 +1,5 @@
 import 'category_model.dart';
-
-double? _asDouble(dynamic value) {
-  if (value == null) return null;
-  if (value is num) return value.toDouble();
-  return double.tryParse(value.toString());
-}
-
-int _asInt(dynamic value, [int fallback = 0]) {
-  if (value == null) return fallback;
-  if (value is int) return value;
-  if (value is num) return value.toInt();
-  return int.tryParse(value.toString()) ?? fallback;
-}
-
-bool _asBool(dynamic value) {
-  if (value is bool) return value;
-  if (value is num) return value != 0;
-  final s = value?.toString().toLowerCase();
-  return s == 'true' || s == '1';
-}
+import 'json_num.dart';
 
 class BusinessModel {
   final int id;
@@ -73,7 +54,10 @@ class BusinessModel {
     List<double>? denominations;
     final rawDenoms = json['denominations'];
     if (rawDenoms is List) {
-      denominations = rawDenoms.map(_asDouble).whereType<double>().toList();
+      denominations = rawDenoms
+          .map(parseJsonDoubleOrNull)
+          .whereType<double>()
+          .toList();
     }
 
     List<CategoryModel>? categories;
@@ -93,8 +77,8 @@ class BusinessModel {
     }
 
     return BusinessModel(
-      id: _asInt(json['id']),
-      userId: _asInt(json['user_id']),
+      id: parseJsonInt(json['id']),
+      userId: parseJsonInt(json['user_id']),
       name: json['name']?.toString() ?? '',
       slug: json['slug']?.toString() ?? '',
       description: json['description']?.toString(),
@@ -105,15 +89,15 @@ class BusinessModel {
       address: json['address']?.toString(),
       city: json['city']?.toString(),
       country: json['country']?.toString() ?? 'Tanzania',
-      latitude: _asDouble(json['latitude']),
-      longitude: _asDouble(json['longitude']),
+      latitude: parseJsonDoubleOrNull(json['latitude']),
+      longitude: parseJsonDoubleOrNull(json['longitude']),
       website: json['website']?.toString(),
       denominations: denominations,
       status: json['status']?.toString() ?? 'pending',
-      isFeatured: _asBool(json['is_featured']),
-      rating: _asDouble(json['rating']) ?? 0,
-      totalReviews: _asInt(json['total_reviews']),
-      walletBalance: _asDouble(json['wallet_balance']) ?? 0,
+      isFeatured: parseJsonBool(json['is_featured']),
+      rating: parseJsonDouble(json['rating']),
+      totalReviews: parseJsonInt(json['total_reviews']),
+      walletBalance: parseJsonDouble(json['wallet_balance']),
       categories: categories,
     );
   }
