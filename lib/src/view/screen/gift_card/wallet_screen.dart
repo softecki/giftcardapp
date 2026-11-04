@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:malipo_agent/core/app_color.dart';
+import 'package:malipo_agent/core/gift_card_payment.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
+import 'payment_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   const WalletScreen({super.key});
@@ -44,39 +46,68 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> _deposit() async {
-    final controller = TextEditingController();
-    final amount = await showDialog<double>(
+    final amountCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+    final submitted = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Add money'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Amount (TZS)'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Amount (TZS)'),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: phoneCtrl,
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Phone number'),
+            ),
+          ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, double.tryParse(controller.text)),
-            child: const Text('Deposit'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Submit')),
         ],
       ),
     );
-    if (amount == null || amount <= 0) return;
+    if (submitted != true) return;
+    final amount = double.tryParse(amountCtrl.text.trim());
+    final phone = phoneCtrl.text.trim();
+    if (amount == null || amount <= 0 || phone.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter amount and phone number')),
+      );
+      return;
+    }
     try {
-      await _api.depositWallet(
+      final res = await _api.depositWallet(
         amount: amount,
+        phone: phone,
         paymentMethod: 'mobile_money',
-        paymentReference: 'APP-${DateTime.now().millisecondsSinceEpoch}',
+      );
+      if (!mounted) return;
+      final payload = res['data'] is Map ? res['data'] as Map : res;
+      final url = GiftCardPayment.fromApi(payload, amount: amount);
+      await Navigator.push(
+        context,
+        GiftCardPaymentScreen.route(
+          paymentUrl: url,
+          reference: payload['reference']?.toString(),
+          amount: amount,
+          title: 'Complete payment',
+        ),
       );
       await _load();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
-        );
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString().replaceAll('Exception: ', ''))),
+      );
     }
   }
 

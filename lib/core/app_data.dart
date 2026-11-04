@@ -5,6 +5,8 @@ class AppData {
   const AppData._();
 
   static String url = "https://giftcardportal.softecki.com/api";
+  static const String paymentUrl =
+      "https://gate.dodesoft.com/p/121c47a3-4f60-4632-8c2a-a2b988d3f09a/details/";
   static const String appName = "GiftCard";
   static String School_name = appName;
 

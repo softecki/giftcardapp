@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:malipo_agent/core/app_color.dart';
+import 'package:malipo_agent/core/gift_card_payment.dart';
 import 'package:malipo_agent/models/business_model.dart';
 import 'package:malipo_agent/services/gift_card_api_service.dart';
+import 'payment_screen.dart';
 
 class BusinessDetailScreen extends StatefulWidget {
   const BusinessDetailScreen({super.key, required this.businessId});
@@ -52,16 +54,68 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     }
   }
 
+  Future<String?> _askPhone() async {
+    final phoneCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pay'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Amount: TZS ${_selected?.toStringAsFixed(0) ?? '0'}',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+          controller: phoneCtrl,
+          keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Phone number'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Submit')),
+        ],
+      ),
+    );
+    if (ok != true) return null;
+    final phone = phoneCtrl.text.trim();
+    return phone.isEmpty ? null : phone;
+  }
+
   Future<void> _buy() async {
     if (_selected == null) return;
+    String? phone;
+    if (_payment != 'wallet') {
+      phone = await _askPhone();
+      if (phone == null) return;
+    }
     setState(() => _buying = true);
     try {
-      await _api.purchaseGiftCard(
+      final res = await _api.purchaseGiftCard(
         businessId: widget.businessId,
         amount: _selected!,
         paymentMethod: _payment,
+        phone: phone,
       );
       if (!mounted) return;
+      final payload = res['data'] is Map ? Map<String, dynamic>.from(res['data'] as Map) : res;
+      if (payload['payment_required'] == true) {
+        await Navigator.push(
+          context,
+          GiftCardPaymentScreen.route(
+            paymentUrl: GiftCardPayment.fromApi(payload, amount: _selected),
+            reference: payload['reference']?.toString(),
+            amount: _selected,
+            title: 'Pay for gift card',
+          ),
+        );
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Gift card purchased')),
       );
@@ -139,7 +193,7 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
                 RadioListTile<String>(
                   value: 'mobile_money',
                   groupValue: _payment,
-                  title: const Text('Mobile money'),
+                  title: const Text('Mobile money / card (Dodesoft)'),
                   onChanged: (v) => setState(() => _payment = v!),
                 ),
                 const SizedBox(height: 12),

@@ -1,0 +1,1 @@
+void openCheckoutUrl(String url) {}

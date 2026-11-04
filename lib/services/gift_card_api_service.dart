@@ -352,6 +352,7 @@ class GiftCardApiService {
     required int businessId,
     required double amount,
     required String paymentMethod,
+    String? phone,
     String? paymentReference,
     String? recipientName,
     String? recipientEmail,
@@ -365,6 +366,7 @@ class GiftCardApiService {
         'business_id': businessId,
         'amount': amount,
         'payment_method': paymentMethod,
+        if (phone != null) 'phone': phone,
         'payment_reference': paymentReference,
         'recipient_name': recipientName,
         'recipient_email': recipientEmail,
@@ -461,19 +463,30 @@ class GiftCardApiService {
   
   Future<Map<String, dynamic>> depositWallet({
     required double amount,
+    required String phone,
     required String paymentMethod,
-    required String paymentReference,
+    String? paymentReference,
   }) async {
     final response = await http.post(
       Uri.parse('$baseUrl/wallet/deposit'),
       headers: await _getHeaders(includeAuth: true),
       body: jsonEncode({
         'amount': amount,
+        'phone': phone,
         'payment_method': paymentMethod,
         'payment_reference': paymentReference,
       }),
     );
     
+    return _handleResponse(response);
+  }
+
+  Future<Map<String, dynamic>> paymentStatus({required String reference}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/payment/status'),
+      headers: await _getHeaders(includeAuth: true),
+      body: jsonEncode({'reference': reference}),
+    );
     return _handleResponse(response);
   }
   

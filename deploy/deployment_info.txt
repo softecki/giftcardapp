@@ -1,6 +1,6 @@
 GiftCard Web Deployment
 ================================
-Version: 1.7.0
-Deployed: Tue Sep 29 17:56:58 EAST 2026
-Build: 20260929_175653
-Flutter Version: Flutter 3.29.0 • channel stable • https://github.com/flutter/flutter.git
+Version: 1.9.0
+Deployed: Wed Nov  4 15:35:37 EAST 2026
+Build: 20261104_153531
+Flutter Version: Flutter 3.47.7 • channel stable • https://github.com/flutter/flutter.git
