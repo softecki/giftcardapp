@@ -55,6 +55,14 @@ class _WalletScreenState extends State<WalletScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Mobile Money / Card',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
@@ -126,6 +134,7 @@ class _WalletScreenState extends State<WalletScreen> {
       );
     }
     return RefreshIndicator(
+      color: AppColor.primaryColor,
       onRefresh: _load,
       child: ListView(
         padding: const EdgeInsets.all(16),
@@ -135,8 +144,17 @@ class _WalletScreenState extends State<WalletScreen> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
                 colors: [Color(0xFFE54747), Color(0xFF8B1E3F)],
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColor.primaryColor.withOpacity(0.28),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

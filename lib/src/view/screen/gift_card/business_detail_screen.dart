@@ -16,17 +16,24 @@ class BusinessDetailScreen extends StatefulWidget {
 
 class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   final _api = GiftCardApiService();
+  final _phoneCtrl = TextEditingController();
   BusinessModel? _business;
   List<double> _denoms = [];
   double? _selected;
   bool _loading = true;
   bool _buying = false;
-  String _payment = 'wallet';
+  final String _payment = 'mobile_money';
 
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _phoneCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -54,45 +61,31 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
     }
   }
 
-  Future<String?> _askPhone() async {
-    final phoneCtrl = TextEditingController();
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Pay'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Amount: TZS ${_selected?.toStringAsFixed(0) ?? '0'}',
-              style: const TextStyle(fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-          controller: phoneCtrl,
-          keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(labelText: 'Phone number'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Submit')),
-        ],
+  InputDecoration _field(String label, {IconData? icon}) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: icon == null ? null : Icon(icon),
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.black.withOpacity(0.06)),
       ),
     );
-    if (ok != true) return null;
-    final phone = phoneCtrl.text.trim();
-    return phone.isEmpty ? null : phone;
   }
 
   Future<void> _buy() async {
     if (_selected == null) return;
-    String? phone;
-    if (_payment != 'wallet') {
-      phone = await _askPhone();
-      if (phone == null) return;
+    final phone = _phoneCtrl.text.trim();
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter the phone number to pay with')),
+      );
+      return;
     }
     setState(() => _buying = true);
     try {
@@ -134,80 +127,165 @@ class _BusinessDetailScreenState extends State<BusinessDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F4F5),
+      backgroundColor: AppColor.cream,
       appBar: AppBar(
         title: Text(_business?.name ?? 'Brand'),
         foregroundColor: Colors.white,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFFE54747), Color(0xFF8B1E3F)],
-            ),
-          ),
-        ),
+        elevation: 0,
+        backgroundColor: AppColor.primaryColor,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               children: [
-                Text(
-                  _business?.description ?? 'Choose an amount and send a gift instantly.',
-                  style: TextStyle(color: Colors.grey[700], height: 1.4),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(24),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFE54747), Color(0xFF8B1E3F)],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColor.primaryColor.withOpacity(0.28),
+                        blurRadius: 18,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.card_giftcard, color: Colors.white, size: 36),
+                      const SizedBox(height: 12),
+                      Text(
+                        _business?.name ?? 'Gift card',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        _business?.description ??
+                            'Choose an amount and pay with mobile money or card.',
+                        style: TextStyle(color: Colors.white.withOpacity(0.9), height: 1.4),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                const Text('Amount', style: TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 24),
+                const Text('Amount', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                 const SizedBox(height: 10),
                 Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _denoms
-                      .map(
-                        (d) => ChoiceChip(
-                          label: Text('TZS ${d.toStringAsFixed(0)}'),
-                          selected: _selected == d,
-                          selectedColor: AppColor.primaryColor,
-                          labelStyle: TextStyle(
-                            color: _selected == d ? Colors.white : Colors.black87,
-                          ),
-                          onSelected: (_) => setState(() => _selected = d),
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: _denoms.map((d) {
+                    final selected = _selected == d;
+                    return ChoiceChip(
+                      label: Text('TZS ${d.toStringAsFixed(0)}'),
+                      selected: selected,
+                      selectedColor: AppColor.primaryColor,
+                      backgroundColor: Colors.white,
+                      labelStyle: TextStyle(
+                        color: selected ? Colors.white : AppColor.ink,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: BorderSide(
+                          color: selected
+                              ? AppColor.primaryColor
+                              : Colors.black.withOpacity(0.06),
                         ),
-                      )
-                      .toList(),
+                      ),
+                      onSelected: (_) => setState(() => _selected = d),
+                    );
+                  }).toList(),
                 ),
                 if (_denoms.isEmpty)
                   TextField(
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Custom amount (TZS)'),
-                    onChanged: (v) =>
-                        setState(() => _selected = double.tryParse(v)),
+                    decoration: _field('Custom amount (TZS)', icon: Icons.payments_outlined),
+                    onChanged: (v) => setState(() => _selected = double.tryParse(v)),
                   ),
-                const SizedBox(height: 20),
-                const Text('Pay with', style: TextStyle(fontWeight: FontWeight.w700)),
-                RadioListTile<String>(
-                  value: 'wallet',
-                  groupValue: _payment,
-                  title: const Text('Wallet'),
-                  onChanged: (v) => setState(() => _payment = v!),
+                const SizedBox(height: 24),
+                const Text('Pay with', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                const SizedBox(height: 10),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: AppColor.primaryColor.withOpacity(0.35)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Color(0x1AE54747),
+                        child: Icon(Icons.phone_iphone, color: AppColor.primaryColor),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Mobile Money / Card',
+                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                            ),
+                            SizedBox(height: 2),
+                            Text(
+                              'Pay from your phone or card',
+                              style: TextStyle(color: Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.check_circle, color: AppColor.primaryColor),
+                    ],
+                  ),
                 ),
-                RadioListTile<String>(
-                  value: 'mobile_money',
-                  groupValue: _payment,
-                  title: const Text('Mobile money / card (Dodesoft)'),
-                  onChanged: (v) => setState(() => _payment = v!),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: _field('Phone number', icon: Icons.phone_outlined),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 SizedBox(
-                  height: 52,
+                  height: 54,
                   child: ElevatedButton(
                     onPressed: _buying ? null : _buy,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColor.primaryColor,
                       foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: _buying
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text('Buy gift card'),
+                        ? const SizedBox(
+                            height: 22,
+                            width: 22,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          )
+                        : Text(
+                            'Buy gift card${_selected == null ? '' : ' · TZS ${_selected!.toStringAsFixed(0)}'}',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
                   ),
                 ),
               ],

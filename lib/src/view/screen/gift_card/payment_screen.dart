@@ -41,7 +41,7 @@ class _GiftCardPaymentScreenState extends State<GiftCardPaymentScreen>
   final _api = GiftCardApiService();
   Timer? _timer;
   bool _checking = false;
-  String _message = 'Complete payment in the new tab.';
+  String _message = 'Finish paying with mobile money or card in the new tab.';
 
   @override
   void initState() {
@@ -99,52 +99,101 @@ class _GiftCardPaymentScreenState extends State<GiftCardPaymentScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColor.cream,
       appBar: AppBar(
         title: Text(widget.title),
         backgroundColor: AppColor.primaryColor,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.open_in_new, size: 48, color: AppColor.primaryColor),
-            const SizedBox(height: 16),
-            const Text(
-              'Finish payment on the SoftePay page',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  const CircleAvatar(
+                    radius: 32,
+                    backgroundColor: Color(0x1AE54747),
+                    child: Icon(Icons.open_in_new, color: AppColor.primaryColor, size: 28),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Complete payment',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey[700], height: 1.4),
+                  ),
+                  if (widget.reference != null) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColor.cream,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Reference: ${widget.reference}',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text(_message, textAlign: TextAlign.center),
-            if (widget.reference != null) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Reference: ${widget.reference}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ],
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _openCheckout,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.primaryColor,
-                foregroundColor: Colors.white,
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _openCheckout,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColor.primaryColor,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('Open payment page', style: TextStyle(fontWeight: FontWeight.w800)),
               ),
-              child: const Text('Open payment page'),
             ),
             const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _checking ? null : _checkStatus,
-              child: _checking
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Check status'),
+            SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                onPressed: _checking ? null : _checkStatus,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColor.primaryColor,
+                  side: const BorderSide(color: AppColor.primaryColor),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: _checking
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Check status', style: TextStyle(fontWeight: FontWeight.w700)),
+              ),
             ),
           ],
         ),

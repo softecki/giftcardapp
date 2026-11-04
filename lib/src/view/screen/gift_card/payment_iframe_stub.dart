@@ -11,7 +11,7 @@ Widget buildPaymentIframe(String url) {
           const Icon(Icons.payment, size: 48, color: AppColor.primaryColor),
           const SizedBox(height: 12),
           const Text(
-            'Continue to Dodesoft to complete payment',
+            'Continue on the payment page to finish',
             textAlign: TextAlign.center,
             style: TextStyle(fontWeight: FontWeight.w700),
           ),

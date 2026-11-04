@@ -176,6 +176,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         backgroundColor: AppColor.primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
